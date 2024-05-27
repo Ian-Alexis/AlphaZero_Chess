@@ -20,5 +20,9 @@ torch.save({'state_dict': alpha_net.state_dict()}, './model_data/current_net_tra
 # mkdir -p ./datasets/iter2
 
 
+# En cas de problème avec CUDA
+#pip install torch==2.2.2 torchvision==0.17.2 torchaudio==2.2.2 --index-url https://download.pytorch.org/whl/test/cu118
+
+
 # python pipeline.py
 
