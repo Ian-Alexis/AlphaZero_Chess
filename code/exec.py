@@ -2,8 +2,12 @@
 # cd 
 # pip install -r requirements.txt
 
-# import torch
-# from alpha_net import ChessNet  # Assurez-vous que ChessNet est correctement défini dans alpha_net
+import torch
+import os
+from alpha_net import ChessNet
+
+net = ChessNet()
+torch.save({'state_dict': net.state_dict()}, os.path.join("./model_data/", "current_net.pth.tar"))
 
 # # Initialisation du réseau
 # alpha_net = ChessNet()
@@ -27,8 +31,3 @@
 # python pipeline.py
 
 
-import os
-
-# Récupérer le nom d'utilisateur
-username = os.getlogin()
-print(username)
