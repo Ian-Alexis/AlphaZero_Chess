@@ -206,8 +206,8 @@ def MCTS_self_play(chessnet,num_games,cpu):
 
             ##### Modification pour accélérer le code #####
 
-            # best_move, root = UCT_search(current_board,777,chessnet)
-            best_move, root = UCT_search(current_board,1,chessnet)
+            best_move, root = UCT_search(current_board,777,chessnet)
+            # best_move, root = UCT_search(current_board,111,chessnet)
 
             current_board = do_decode_n_move_pieces(current_board,best_move) # decode move and move piece(s)
             policy = get_policy(root)
@@ -255,13 +255,12 @@ if __name__=="__main__":
 
     ##### Modification pour accélérer le code #####
 
-    # for i in range(6):
-    for i in range(1):
+    for i in range(6):
+    # for i in range(1):
 
-        # p = mp.Process(target=MCTS_self_play,args=(net,50,i))
-        p = mp.Process(target=MCTS_self_play,args=(net,1
-                                                   
-                                                   ,i))
+        p = mp.Process(target=MCTS_self_play,args=(net,50,i))
+        # p = mp.Process(target=MCTS_self_play,args=(net,10,i))
+
         p.start()
         processes.append(p)
     for p in processes:
