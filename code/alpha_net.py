@@ -11,15 +11,17 @@ import os
 import datetime
 
 class board_data(Dataset):
-    def __init__(self, dataset): # dataset = np.array of (s, p, v)
-        self.X = dataset[:,0]
-        self.y_p, self.y_v = dataset[:,1], dataset[:,2]
+    def __init__(self, dataset): # dataset = list of tuples (s, p, v)
+        self.X = [data[0] for data in dataset]
+        self.y_p = [data[1] for data in dataset]
+        self.y_v = [data[2] for data in dataset]
     
     def __len__(self):
         return len(self.X)
     
-    def __getitem__(self,idx):
-        return self.X[idx].transpose(2,0,1), self.y_p[idx], self.y_v[idx]
+    def __getitem__(self, idx):
+        return self.X[idx].transpose(2, 0, 1), self.y_p[idx], self.y_v[idx]
+
 
 class ConvBlock(nn.Module):
     def __init__(self):
