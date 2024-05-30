@@ -5,14 +5,14 @@ import torch
 
 # Supprimer les logs existants
 def remove_logs():
-    dirs = ['./datasets/iter0/', './datasets/iter1/', './datasets/iter2/', './model_data/']
+    dirs = ['./datasets/iter0/', './datasets/iter1/', './datasets/iter2/', './model_data/', './evaluator_data/']
     for dir_path in dirs:
         if os.path.exists(dir_path):
             shutil.rmtree(dir_path)
 
 # Créer les nouveaux dossiers
 def create_directories():
-    dirs = ['./datasets/iter0/', './datasets/iter1/', './datasets/iter2/', './model_data/']
+    dirs = ['./datasets/iter0/', './datasets/iter1/', './datasets/iter2/', './model_data/', './evaluator_data/']
     for dir_path in dirs:
         os.makedirs(dir_path, exist_ok=True)
 

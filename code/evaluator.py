@@ -78,12 +78,11 @@ def fork_process(arena_obj,num_games,cpu): # make arena picklable
     arena_obj.evaluate(num_games,cpu)
 
 if __name__=="__main__":
-    mp.set_start_method("spawn",force=True)
-    current_net="current_net.pth.tar"; best_net="current_net_trained.pth.tar"
-    current_net_filename = os.path.join("./model_data/",\
-                                current_net)
-    best_net_filename = os.path.join("./model_data/",\
-                                    best_net)
+    mp.set_start_method("spawn", force=True)
+    current_net = "current_net_trained9_iter1.pth.tar"  # Changez ceci au bon fichier
+    best_net = "current_net_trained8_iter1.pth.tar"    # Changez ceci au bon fichier
+    current_net_filename = os.path.join("./model_data/", current_net)
+    best_net_filename = os.path.join("./model_data/", best_net)
     current_chessnet = cnet()
     best_chessnet = cnet()
     checkpoint = torch.load(current_net_filename)
@@ -94,15 +93,18 @@ if __name__=="__main__":
     if cuda:
         current_chessnet.cuda()
         best_chessnet.cuda()
-    current_chessnet.eval(); best_chessnet.eval()
-    current_chessnet.share_memory(); best_chessnet.share_memory()
-    
+    current_chessnet.eval()
+    best_chessnet.eval()
+    current_chessnet.share_memory()
+    best_chessnet.share_memory()
+
     processes = []
     for i in range(6):
-        p = mp.Process(target=fork_process,args=(arena(current_chessnet,best_chessnet),50,i))
+        p = mp.Process(target=fork_process, args=(arena(current_chessnet, best_chessnet), 50, i))
         p.start()
         processes.append(p)
     for p in processes:
         p.join()
+
 
         
