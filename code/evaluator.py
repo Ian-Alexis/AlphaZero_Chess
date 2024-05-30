@@ -61,18 +61,30 @@ class arena():
         else:
             return None, dataset
     
-    def evaluate(self, num_games,cpu):
+    # def evaluate(self, num_games,cpu):
+    #     current_wins = 0
+    #     for i in range(num_games):
+    #         winner, dataset = self.play_round(); print("%s wins!" % winner)
+    #         dataset.append(winner)
+    #         if winner == "current":
+    #             current_wins += 1
+    #         save_as_pickle("evaluate_net_dataset_cpu%i_%i" % (cpu,i),dataset)
+    #     print("Current_net wins ratio: %.3f" % current_wins/num_games)
+    #     #if current_wins/num_games > 0.55: # saves current net as best net if it wins > 55 % games
+    #     #    torch.save({'state_dict': self.current.state_dict()}, os.path.join("./model_data/",\
+    #     #                                "best_net.pth.tar"))
+
+    def evaluate(self, num_games, cpu):
         current_wins = 0
         for i in range(num_games):
-            winner, dataset = self.play_round(); print("%s wins!" % winner)
+            winner, dataset = self.play_round()
+            print("%s wins!" % winner)
             dataset.append(winner)
             if winner == "current":
                 current_wins += 1
-            save_as_pickle("evaluate_net_dataset_cpu%i_%i" % (cpu,i),dataset)
-        print("Current_net wins ratio: %.3f" % current_wins/num_games)
-        #if current_wins/num_games > 0.55: # saves current net as best net if it wins > 55 % games
-        #    torch.save({'state_dict': self.current.state_dict()}, os.path.join("./model_data/",\
-        #                                "best_net.pth.tar"))
+            save_as_pickle("evaluate_net_dataset_cpu%i_%i" % (cpu, i), dataset)
+        print("Current_net wins ratio: %.3f" % (current_wins / num_games))
+
 
 def fork_process(arena_obj,num_games,cpu): # make arena picklable
     arena_obj.evaluate(num_games,cpu)
@@ -100,7 +112,8 @@ if __name__=="__main__":
 
     processes = []
     for i in range(6):
-        p = mp.Process(target=fork_process, args=(arena(current_chessnet, best_chessnet), 50, i))
+        # p = mp.Process(target=fork_process, args=(arena(current_chessnet, best_chessnet), 50, i))
+        p = mp.Process(target=fork_process, args=(arena(current_chessnet, best_chessnet), 10, i))
         p.start()
         processes.append(p)
     for p in processes:

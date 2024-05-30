@@ -4,8 +4,9 @@ import pygame
 import threading
 import torch
 from alpha_net import ChessNet
-from MCTS_chess import UCT_search, do_decode_n_move_pieces
-import encoder_decoder as ed
+from MCTS_chess2 import UCT_search
+import encoder_decoder2 as ed2
+import ctypes
 
 # Définir la variable d'environnement XDG_RUNTIME_DIR
 os.environ['XDG_RUNTIME_DIR'] = '/tmp/runtime'
@@ -32,7 +33,7 @@ def draw_board(screen):
     for i in range(8):
         for j in range(8):
             color = colors[(i + j + 1) % 2]
-            pygame.draw.rect(screen, color, pygame.Rect(i * 80, (7-j) * 80, 80, 80))
+            pygame.draw.rect(screen, color, pygame.Rect(i * 80, (7 - j) * 80, 80, 80))
 
 # Charger les images des pièces
 def load_images():
@@ -40,7 +41,10 @@ def load_images():
               'white_bishop', 'white_king', 'white_knight', 'white_pawn', 'white_queen', 'white_rook']
     images = {}
     for piece in pieces:
-        images[piece] = pygame.image.load(os.path.join('images', f'{piece}.png'))
+        try:
+            images[piece] = pygame.image.load(os.path.join('images', f'{piece}.png'))
+        except pygame.error as e:
+            print(f"Erreur lors du chargement de l'image {piece}: {e}")
     return images
 
 # Dessiner les pièces sur le plateau
@@ -50,7 +54,7 @@ def draw_pieces(screen, board, images):
         if piece:
             piece_image = images[piece_color_and_type(piece)]
             row, col = divmod(square, 8)
-            screen.blit(piece_image, pygame.Rect(col * 80, (7-row) * 80, 80, 80))
+            screen.blit(piece_image, pygame.Rect(col * 80, (7 - row) * 80, 80, 80))
 
 # Modifier la fonction pour inverser les couleurs des pièces
 def piece_color_and_type(piece):
@@ -77,11 +81,43 @@ def get_move_input(board):
 
 # Fonction pour obtenir des mouvements du modèle
 def get_model_move(board):
-    game_state = ed.encode_board(board)
+    game_state = ed2.encode_board(board)
     game_state = torch.from_numpy(game_state).float().cuda().unsqueeze(0)
     best_move_idx, _ = UCT_search(board, 111, model)
-    move = ed.decode_action(board, best_move_idx)
+    initial_pos, final_pos, promotion = ed2.decode_action(board, best_move_idx)
+
+    # Convertir les positions en notation UCI
+    initial_uci = chess.square_name(initial_pos[0])
+    final_uci = chess.square_name(final_pos[0])
+    promotion_piece = promotion[0] if promotion[0] else ''
+
+    move = chess.Move.from_uci(f"{initial_uci}{final_uci}{promotion_piece}")
     return move
+
+# Fonction pour vérifier et afficher le résultat de la partie
+def check_game_status(board):
+    if board.is_checkmate():
+        winner = "Noir" if board.turn == chess.WHITE else "Blanc"
+        print(f"Checkmate! Les {winner}s gagnent.")
+        return True
+    elif board.is_stalemate():
+        print("Pat! La partie est nulle.")
+        return True
+    elif board.is_insufficient_material():
+        print("Matériel insuffisant pour mater. La partie est nulle.")
+        return True
+    elif board.can_claim_fifty_moves():
+        print("Règle des 50 coups atteinte. La partie est nulle.")
+        return True
+    elif board.can_claim_threefold_repetition():
+        print("Répétition triple atteinte. La partie est nulle.")
+        return True
+    return False
+
+# Fonction pour amener la fenêtre au premier plan
+def bring_window_to_front():
+    hwnd = pygame.display.get_wm_info()['window']
+    ctypes.windll.user32.SetForegroundWindow(hwnd)
 
 # Fonction principale pour l'interface graphique
 def main():
@@ -94,20 +130,26 @@ def main():
     running = True
 
     while running:
+        bring_window_to_front()  # Amener la fenêtre au premier plan
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+
+        draw_board(screen)
+        draw_pieces(screen, board, images)
+        pygame.display.flip()
+
+        if check_game_status(board):
+            running = False
+            continue
 
         if board.turn == chess.WHITE:
             get_move_input(board)
         else:
             model_move = get_model_move(board)
-            initial_pos, final_pos, promotion = model_move
-            board.push(chess.Move.from_uci(f"{initial_pos}{final_pos}{promotion or ''}"))
+            board.push(model_move)
 
-        draw_board(screen)
-        draw_pieces(screen, board, images)
-        pygame.display.flip()
         clock.tick(30)  # Limiter les FPS à 30
 
     pygame.quit()
